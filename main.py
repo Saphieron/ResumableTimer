@@ -1,19 +1,24 @@
 from tkinter import *
 from tkinter.ttk import *
 import time
-import datetime
+
+precision = 100
 
 
-# import platform
-
-# try:
-#     import winsound
-#
-#     type = 'windows'
-# except:
-#     import os
-#
-#     type = 'other'
+def get_time_string(time_passed):
+    all_seconds = int(time_passed)
+    milliseconds = int((time_passed - all_seconds) * precision)
+    seconds = int(all_seconds % 60)
+    minutes = int((all_seconds / 60) % 60)
+    hours = int((all_seconds / 3600))
+    if minutes == 0:
+        output = "{:02d}.{:02d}".format(seconds, milliseconds)
+        return output
+    if hours == 0:
+        output = "{:02d}:{:02d}.{:02d}".format(minutes, seconds, milliseconds)
+        return output
+    output = "{:02d}:{:02d}:{:02d}.{:02d}".format(hours, minutes, seconds, milliseconds)
+    return output
 
 
 class ReusableTimer:
@@ -24,37 +29,66 @@ class ReusableTimer:
         self.date_label = None
 
         self.total_time = 0
-
-        # self.hours = 0
-        # self.minutes = 0
-        # self.seconds = 0
-        # self.milliseconds = 0
         self.previous_time = 0
+
+        self.running = False
+
+    def clicked_label(self):
+        if not self.running:
+            self.start_timer()
+        else:
+            self.stop_timer()
 
     def make_window(self):
         self.window.title("Timer")
         self.window.geometry('400x150')
         self.time_label = Label(self.window, font='calibri 40 bold', foreground='black')
         self.time_label.pack(anchor='center')
-        # self.date_label = Label(self.window, font='calibri 40 bold', foreground='black')
-        # self.date_label.pack(anchor='s')
 
     def start_timer(self):
         self.total_time = 0
         self.previous_time = time.perf_counter()
+        self.update_clock()
+
+    def stop_timer(self):
+        self.total_time = 0
+        time_string = get_time_string(self.total_time)
+        self.time_label.config(text=time_string)
 
     def update_clock(self):
         current = time.perf_counter()
         diff = current - self.previous_time
+        self.previous_time = current
         self.total_time += diff
-        time_string = str(datetime.timedelta(seconds=self.total_time))
+        time_string = get_time_string(self.total_time)
         self.time_label.config(text=time_string)
-        self.time_label.after(1, self.update_clock)
 
+        def callback(event):
+            if True:
+                print("clicked2")
+                # 'solve' is used here to stop the after... methods.
+                self.time_label.after_cancel(solve)
+
+        self.time_label.bind("<Button-1>", callback)
+        solve = self.time_label.after(10, self.update_clock)
+
+    def run_mainloop(self):
+        self.window.mainloop()
+
+
+def main():
+    timer = ReusableTimer()
+    timer.make_window()
+    timer.start_timer()
+    timer.run_mainloop()
+
+
+if __name__ == "__main__":
+    main()
 
 # def clock():
 #     date_time = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S/%p")
-#     date, time1 = date_time.split()
+#     date, time1 = date_time.split()get_time_string()
 #     time2, time3 = time1.split('/')
 #     hour, minutes, seconds = time2.split(':')
 #     if 11 < int(hour) < 24:
@@ -64,7 +98,6 @@ class ReusableTimer:
 #     time_label.config(text=time)
 #     date_label.config(text=date)
 #     time_label.after(1000, clock)
-
 
 
 # window = Tk()
