@@ -4,6 +4,9 @@ import time
 
 precision = 100
 
+STATE_RESET = 'STATE_RESET'
+STATE_RUNNING = 'STATE_RUNNING'
+STATE_HALTED = 'STATE_HALTED'
 
 def get_time_string(time_passed):
     all_seconds = int(time_passed)
@@ -32,6 +35,10 @@ class ReusableTimer:
         self.previous_time = 0
 
         self.running = False
+        self.time_label_after_obj = None
+        self.is_timer_running = False
+
+        self.app_state = "reset"
 
     def clicked_label(self):
         if not self.running:
@@ -45,15 +52,28 @@ class ReusableTimer:
         self.time_label = Label(self.window, font='calibri 40 bold', foreground='black')
         self.time_label.pack(anchor='center')
 
+        # Button(self.window, text="Start Scan", command=self.start)
+        # Button(self.window, text="Stop", command=self.stop)
+
+        self.time_label.bind("<Button-1>", self.click_left_time_label)
+        self.time_label.bind("<Button-3>", self.click_right_time_label)
+
     def start_timer(self):
         self.total_time = 0
         self.previous_time = time.perf_counter()
+        self.is_timer_running = True
+        self.update_clock()
+
+    def restart_timer(self):
+        self.previous_time = time.perf_counter()
+        self.is_timer_running = True
         self.update_clock()
 
     def stop_timer(self):
-        self.total_time = 0
-        time_string = get_time_string(self.total_time)
-        self.time_label.config(text=time_string)
+        print("doing anything after timer should be stopped")
+        self.time_label.after_cancel(self.time_label_after_obj)
+        self.is_timer_running = False
+
 
     def update_clock(self):
         current = time.perf_counter()
@@ -63,14 +83,25 @@ class ReusableTimer:
         time_string = get_time_string(self.total_time)
         self.time_label.config(text=time_string)
 
-        def callback(event):
-            if True:
-                print("clicked2")
-                # 'solve' is used here to stop the after... methods.
-                self.time_label.after_cancel(solve)
+        # def callback(event):
+        #     if True:
+        #         print("clicked2")
+        #         # 'solve' is used here to stop the after... methods.
+        #         self.time_label.after_cancel(solve)
+        #
+        # self.time_label.bind("<Button-1>", callback)
+        self.time_label_after_obj = self.time_label.after(10, self.update_clock)
 
-        self.time_label.bind("<Button-1>", callback)
-        solve = self.time_label.after(10, self.update_clock)
+    def click_left_time_label(self, event):
+        print("time label clicked left with event {}".format(event))
+        if self.is_timer_running:
+            self.stop_timer()
+        else:
+            if self.time
+            self.start_timer()
+
+    def click_right_time_label(self, event):
+        print("time label clicked right with event {}".format(event))
 
     def run_mainloop(self):
         self.window.mainloop()
